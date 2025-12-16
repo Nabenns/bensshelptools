@@ -50,8 +50,8 @@ def main():
     window.show()
 
     # Worker Thread for WebSocket
-    # Note: In production, use QThread properly. For simplicity, using threading here.
-    ws_url = "ws://localhost:8000/ws/signals"
+    # ws_url = "ws://localhost:8000/ws/signals" # Localhost
+    ws_url = "wss://api.thetrader.id/ws/signals" # VPS Ngrok
     worker = SignalWorker(ws_url)
     
     # Connect signals
