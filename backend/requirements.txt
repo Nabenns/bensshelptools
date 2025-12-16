@@ -8,3 +8,4 @@ supabase
 jinja2
 python-multipart
 itsdangerous
+pydantic-settings
