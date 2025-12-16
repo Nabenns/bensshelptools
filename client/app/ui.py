@@ -54,6 +54,16 @@ class MainWindow(QMainWindow):
         self.signal_table.setEditTriggers(QTableWidget.NoEditTriggers)
         tabs.addTab(self.signal_table, "Live Signals")
 
+        # History Tab
+        self.history_table = QTableWidget()
+        self.history_table.setColumnCount(5)
+        self.history_table.setHorizontalHeaderLabels(["Time", "Symbol", "Type", "Volume", "Profit"])
+        self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.history_table.verticalHeader().setVisible(False)
+        self.history_table.setAlternatingRowColors(True)
+        self.history_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        tabs.addTab(self.history_table, "Trade History")
+
         # Settings Tab
         settings_widget = QWidget()
         settings_layout = QVBoxLayout(settings_widget)
@@ -114,6 +124,12 @@ class MainWindow(QMainWindow):
         
         # Load Settings
         self.load_settings()
+
+        # Timer for History Refresh
+        from PySide6.QtCore import QTimer
+        self.history_timer = QTimer(self)
+        self.history_timer.timeout.connect(self.load_history)
+        self.history_timer.start(5000) # Refresh every 5 seconds
 
     def apply_stylesheet(self):
         style = """
@@ -289,14 +305,27 @@ class MainWindow(QMainWindow):
 
     def save_settings(self):
         import json
-        settings = {
+        import os
+        
+        current_settings = {}
+        if os.path.exists("settings.json"):
+            try:
+                with open("settings.json", "r") as f:
+                    current_settings = json.load(f)
+            except:
+                pass
+
+        new_settings = {
             "mt5_path": self.mt5_path_input.text(),
             "risk_type": self.risk_type_combo.currentText(),
             "risk_value": self.risk_value_input.text()
         }
+        
+        current_settings.update(new_settings)
+        
         try:
             with open("settings.json", "w") as f:
-                json.dump(settings, f)
+                json.dump(current_settings, f)
         except:
             pass
 
@@ -374,3 +403,58 @@ class MainWindow(QMainWindow):
         msg_item = QTableWidgetItem(message)
         self.log_widget.setItem(row, 0, time_item)
         self.log_widget.setItem(row, 1, msg_item)
+
+    def load_history(self):
+        mt5_path = self.mt5_path_input.text()
+        if not mt5_path:
+            return
+            
+        import os
+        import csv
+        
+        # Path to History.csv (Assuming it's in BenssHelpTools subfolder in MQL5/Files)
+        # Note: EA writes to MQL5/Files/BenssHelpTools/History.csv
+        history_path = os.path.join(mt5_path, "BenssHelpTools", "History.csv")
+        
+        if not os.path.exists(history_path):
+            return
+
+        try:
+            with open(history_path, "r") as f:
+                reader = csv.reader(f)
+                data = list(reader)
+                
+                # Check if new data available
+                if len(data) == self.history_table.rowCount():
+                    return
+
+                self.history_table.setRowCount(0) # Clear
+                
+                for row_data in reversed(data): # Show latest first
+                    if len(row_data) < 5: continue
+                    
+                    row = self.history_table.rowCount()
+                    self.history_table.insertRow(row)
+                    
+                    # Time, Symbol, Type, Volume, Profit
+                    self.history_table.setItem(row, 0, QTableWidgetItem(row_data[0]))
+                    self.history_table.setItem(row, 1, QTableWidgetItem(row_data[1]))
+                    
+                    type_item = QTableWidgetItem(row_data[2])
+                    if "BUY" in row_data[2]:
+                        type_item.setForeground(QColor("#4ade80"))
+                    elif "SELL" in row_data[2]:
+                        type_item.setForeground(QColor("#f87171"))
+                    self.history_table.setItem(row, 2, type_item)
+                    
+                    self.history_table.setItem(row, 3, QTableWidgetItem(row_data[3]))
+                    
+                    profit = float(row_data[4])
+                    profit_item = QTableWidgetItem(f"${profit:.2f}")
+                    if profit >= 0:
+                        profit_item.setForeground(QColor("#4ade80"))
+                    else:
+                        profit_item.setForeground(QColor("#f87171"))
+                    self.history_table.setItem(row, 4, profit_item)
+        except Exception as e:
+            print(f"Error loading history: {e}")

@@ -7,3 +7,4 @@ python-dotenv
 supabase
 jinja2
 python-multipart
+itsdangerous

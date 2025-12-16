@@ -9,3 +9,6 @@ venv/
 *.log
 *.sqlite3
 *.db
+dist/
+build/
+*.spec

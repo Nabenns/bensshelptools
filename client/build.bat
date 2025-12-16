@@ -1,20 +1,12 @@
 @echo off
-echo Building BenssHelpTools Client...
-
-pushd "%~dp0"
-cd app
-pyinstaller --noconsole --onefile --name "BenssHelpTools" --clean --hidden-import=PySide6 --hidden-import=websockets main.py
-
-if exist "..\BenssHelpTools.exe" del "..\BenssHelpTools.exe"
-move dist\BenssHelpTools.exe ..\
-
-echo.
-echo Cleaning up build artifacts...
+echo [1/3] Cleaning previous builds...
 rmdir /s /q build
 rmdir /s /q dist
-del BenssHelpTools.spec
+del /q *.spec
 
-popd
-echo.
-echo Build Complete! Executable is in the client folder: BenssHelpTools.exe
+echo [2/3] Building Client App with PyInstaller...
+pyinstaller --noconfirm --onedir --windowed --name "BenssHelpTools" --add-data "settings.json;." app/main.py
+
+echo [3/3] Build Complete!
+echo Output is in dist/BenssHelpTools
 pause

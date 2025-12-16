@@ -115,3 +115,48 @@ async def delete_license(request: Request, key: str):
         print(f"Error deleting license: {e}")
 
     return RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+
+# --- Public API for Client App ---
+
+from pydantic import BaseModel
+
+class LicenseCheck(BaseModel):
+    key: str
+    hwid: str
+
+@router.post("/validate")
+async def validate_license(data: LicenseCheck):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Database not connected")
+
+    # 1. Check if license exists
+    try:
+        response = supabase.table("licenses").select("*").eq("key", data.key).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    if not response.data:
+        return {"valid": False, "message": "License key not found"}
+
+    license_data = response.data[0]
+
+    # 2. Check status
+    if license_data['status'] != 'ACTIVE':
+        return {"valid": False, "message": f"License is {license_data['status']}"}
+
+    # 3. Check Expiration
+    if license_data['expires_at']:
+        expires = datetime.fromisoformat(license_data['expires_at'].replace('Z', '+00:00'))
+        if datetime.now(expires.tzinfo) > expires:
+            # Auto-expire in DB
+            supabase.table("licenses").update({"status": "EXPIRED"}).eq("key", data.key).execute()
+            return {"valid": False, "message": "License has expired"}
+
+    # 4. HWID Lock
+    if not license_data['hwid']:
+        # First time use, lock to this HWID
+        supabase.table("licenses").update({"hwid": data.hwid}).eq("key", data.key).execute()
+    elif license_data['hwid'] != data.hwid:
+        return {"valid": False, "message": "License is locked to another device"}
+
+    return {"valid": True, "message": "License active", "expires_at": license_data['expires_at']}

@@ -1,3 +1,35 @@
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from typing import List
+import json
+import redis.asyncio as redis
+from .config import settings
+from .models import Signal
+from app.routers import dashboard
+import os
+
+app = FastAPI(title="CopySignal Backend")
+
+# Session Middleware for Admin Login
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "supersecretkey"))
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Redis Connection
+redis_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True)
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
 
@@ -49,3 +81,6 @@ async def push_signal(signal: Signal):
     await manager.broadcast(signal.json())
     
     return {"status": "received", "signal_id": signal.id}
+
+# Include Dashboard Router
+app.include_router(dashboard.router)

@@ -300,6 +300,67 @@ void ManageTrades()
                  }
               }
            }
-        }
-     }
-  }
+         }
+      }
+   }
+
+//+------------------------------------------------------------------+
+//| Trade Transaction Handler (For History)                          |
+//+------------------------------------------------------------------+
+void OnTradeTransaction(const MqlTradeTransaction& trans,
+                        const MqlTradeRequest& request,
+                        const MqlTradeResult& result)
+{
+   // Check for closed deals (Exit)
+   if(trans.type == TRADE_TRANSACTION_DEAL_ADD)
+   {
+      if(HistoryDealSelect(trans.deal))
+      {
+         long entry = HistoryDealGetInteger(trans.deal, DEAL_ENTRY);
+         if(entry == DEAL_ENTRY_OUT) // Closing deal
+         {
+            string symbol = HistoryDealGetString(trans.deal, DEAL_SYMBOL);
+            long type = HistoryDealGetInteger(trans.deal, DEAL_TYPE); // 0=Buy, 1=Sell
+            double volume = HistoryDealGetDouble(trans.deal, DEAL_VOLUME);
+            double profit = HistoryDealGetDouble(trans.deal, DEAL_PROFIT);
+            double swap = HistoryDealGetDouble(trans.deal, DEAL_SWAP);
+            double commission = HistoryDealGetDouble(trans.deal, DEAL_COMMISSION);
+            double totalProfit = profit + swap + commission;
+            long time = HistoryDealGetInteger(trans.deal, DEAL_TIME);
+            
+            string typeStr = (type == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+            
+            // Format: TIME|SYMBOL|TYPE|VOLUME|PROFIT
+            string line = TimeToString(time) + "|" + symbol + "|" + typeStr + "|" + DoubleToString(volume, 2) + "|" + DoubleToString(totalProfit, 2);
+            
+            WriteHistory(line);
+         }
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Write History to CSV                                             |
+//+------------------------------------------------------------------+
+void WriteHistory(string line)
+{
+   // Write to MQL5/Files/BenssHelpTools/History.csv
+   string folder = "BenssHelpTools";
+   string filename = "History.csv";
+   
+   // Ensure folder exists (MQL5 doesn't have MakeDir, assuming user created it or we just write to root if needed, 
+   // but since we read signals from BenssHelpTools/Signals, let's put history in BenssHelpTools/)
+   
+   int handle = FileOpen(folder + "\\" + filename, FILE_READ|FILE_WRITE|FILE_CSV|FILE_ANSI, ",");
+   
+   if(handle != INVALID_HANDLE)
+   {
+      FileSeek(handle, 0, SEEK_END);
+      FileWrite(handle, line);
+      FileClose(handle);
+   }
+   else
+   {
+      Print("Failed to write history. Error: ", GetLastError());
+   }
+}

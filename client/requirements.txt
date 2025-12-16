@@ -3,3 +3,4 @@ websockets
 requests
 psutil
 python-dotenv
+packaging
