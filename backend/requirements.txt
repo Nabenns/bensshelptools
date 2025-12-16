@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+redis
+discord.py
+pydantic
+pydantic-settings
+python-dotenv
+websockets
+pyjwt

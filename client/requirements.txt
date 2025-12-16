@@ -1,0 +1,5 @@
+PySide6
+websockets
+requests
+psutil
+python-dotenv

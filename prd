@@ -1,0 +1,317 @@
+# PRD FINAL
+
+## SaaS Discord Signal → MT5 Auto Trading Platform (Commercial & Scalable)
+
+---
+
+## 1. Product Summary
+
+Aplikasi **SaaS trading automation** yang memungkinkan user menerima **signal trading dari Discord** dan **mengeksekusi order LIMIT secara otomatis di MetaTrader 5 (MT5)**.
+
+Sistem dirancang **scalable, commercial-ready**, dan **tidak menggunakan broker / MT5 API**. Semua eksekusi dilakukan melalui **MT5 Desktop lokal user** menggunakan **Expert Advisor (EA)**.
+
+---
+
+## 2. Key Principles
+
+* Centralized Signal Processing (Server)
+* Decentralized Execution (Client + MT5)
+* Real-time & Low Latency
+* Subscription-based & License controlled
+* High-end Desktop UI
+
+---
+
+## 3. Target Users
+
+* Retail traders
+* Signal providers
+* Trading communities (Discord-based)
+* Small prop firms
+
+---
+
+## 4. System Architecture Overview
+
+```
+Discord Server
+     ↓
+Central Discord Bot (Cloud)
+     ↓
+Signal Engine
+     ↓
+WebSocket / API Gateway
+     ↓
+Desktop Client (User)
+     ↓
+Local Bridge (File / Socket)
+     ↓
+MT5 Expert Advisor
+     ↓
+Trade Execution
+```
+
+---
+
+## 5. Core Components
+
+### 5.1 Central Discord Bot (Server)
+
+**Responsibilities:**
+
+* Monitor multiple Discord servers & channels
+* Permission-based channel access
+* Parse signal messages
+* Normalize signal format
+
+**Tech Stack:**
+
+* Python 3.11
+* discord.py
+* Asyncio
+
+---
+
+### 5.2 Signal Engine (Backend Core)
+
+**Responsibilities:**
+
+* Validate signal data
+* Deduplication
+* Signal versioning
+* Risk template assignment
+
+**Tech Stack:**
+
+* FastAPI
+* Pydantic
+* Redis (cache & pub/sub)
+
+---
+
+### 5.3 API & Realtime Gateway
+
+**REST API:**
+
+* Auth
+* License validation
+* User config sync
+
+**WebSocket:**
+
+* Real-time signal push
+* Heartbeat & reconnect
+
+**Tech Stack:**
+
+* FastAPI
+* WebSocket (WSS)
+* JWT Authentication
+
+---
+
+### 5.4 Desktop Client Application
+
+**Responsibilities:**
+
+* User authentication
+* License validation
+* Receive signal from server
+* Apply user-specific risk rules
+* Bridge signal to MT5 EA
+* Auto-launch MT5
+
+**Tech Stack (Chosen):**
+
+* Python 3.11
+* PySide6 (Qt)
+* QML (optional, for premium UI)
+* asyncio
+* psutil
+
+---
+
+### 5.5 MT5 Expert Advisor (EA)
+
+**Responsibilities:**
+
+* Listen command from desktop client
+* Validate symbol & price
+* Execute BUY LIMIT / SELL LIMIT
+* Send execution status
+
+**Tech Stack:**
+
+* MQL5
+
+---
+
+## 6. Functional Requirements
+
+### 6.1 Signal Processing
+
+* Support BUY LIMIT / SELL LIMIT
+* Multi TP support
+* Partial TP (optional)
+* Custom signal format via regex
+
+---
+
+### 6.2 Risk Management (Client Side)
+
+* Fixed lot
+* Risk % based on balance
+* Max open trades
+* Max daily loss
+* Magic number
+
+---
+
+### 6.3 Auto MT5 Control
+
+* Detect MT5 process
+* Auto launch MT5
+* Retry mechanism
+* Path configurable
+
+---
+
+### 6.4 License & Subscription
+
+* Login required
+* Device limit per account
+* Expiry date enforcement
+* Server-side validation
+
+---
+
+### 6.5 Safety Controls
+
+* Global ON/OFF execution
+* Emergency stop
+* Signal blacklist
+* Symbol whitelist
+
+---
+
+### 6.6 Logging & Monitoring
+
+* Signal received log
+* Order execution log
+* Error log
+* Export CSV
+
+---
+
+## 7. Non-Functional Requirements
+
+| Item        | Requirement      |
+| ----------- | ---------------- |
+| OS          | Windows 10 / 11  |
+| Latency     | < 500 ms         |
+| Uptime      | 99.9% (Server)   |
+| Security    | Encrypted tokens |
+| Scalability | Horizontal       |
+
+---
+
+## 8. UI / UX Requirements
+
+**Design Goals:**
+
+* Trading terminal feel (professional)
+* Dark mode default
+* Smooth animation
+* Minimalist layout
+
+**Main Screens:**
+
+* Login / License
+* Dashboard (status & balance)
+* Signal Monitor
+* Risk Settings
+* MT5 Connection Status
+* Logs
+
+---
+
+## 9. Data Model (High Level)
+
+**User**
+
+* id
+* email
+* license_type
+* expiry
+
+**Signal**
+
+* id
+* symbol
+* type
+* entry
+* sl
+* tp
+
+**TradeLog**
+
+* signal_id
+* status
+* timestamp
+
+---
+
+## 10. Deployment Strategy
+
+### Server
+
+* Dockerized services
+* VPS / Cloud
+* Redis + PostgreSQL
+* Nginx reverse proxy
+
+### Client
+
+* PyInstaller (.exe)
+* Auto-update (future)
+
+---
+
+## 11. Scalability Strategy
+
+* Stateless API
+* Redis Pub/Sub
+* Horizontal scaling
+* User isolation at client level
+
+---
+
+## 12. Future Roadmap
+
+* Multi MT5 account
+* Web dashboard
+* Copy trade
+* Strategy marketplace
+* Mobile monitor app
+
+---
+
+## 13. Legal & Disclaimer
+
+* User responsible for trading risk
+* No guarantee of profit
+* No broker API usage
+
+---
+
+## 14. Deliverables
+
+* Discord Bot Service
+* Backend API
+* Desktop Client (.exe)
+* MT5 EA (.ex5)
+* Documentation
+
+---
+
+END OF FINAL PRD
