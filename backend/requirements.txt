@@ -1,9 +1,9 @@
 fastapi
-uvicorn[standard]
+uvicorn
 redis
-discord.py
-pydantic
-pydantic-settings
-python-dotenv
 websockets
-pyjwt
+discord.py
+python-dotenv
+supabase
+jinja2
+python-multipart

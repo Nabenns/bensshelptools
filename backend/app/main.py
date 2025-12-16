@@ -1,20 +1,3 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from typing import List
-import json
-import redis.asyncio as redis
-from .config import settings
-from .models import Signal
-
-app = FastAPI(title="CopySignal Backend")
-
-# Redis Connection
-redis_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True)
-
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
 
